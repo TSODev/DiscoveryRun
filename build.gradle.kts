@@ -18,8 +18,10 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")
     implementation("com.xenomachina:kotlin-argparser:2.0.7")
+    implementation("com.github.ajalt.clikt:clikt:4.2.0")
     implementation("io.github.oshai:kotlin-logging-jvm:4.0.0")
     implementation("org.slf4j:slf4j-reload4j:2.0.7")
+    implementation("com.github.ajalt.mordant:mordant:2.1.0")
 
     testImplementation(kotlin("test"))
 }

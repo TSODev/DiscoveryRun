@@ -68,8 +68,8 @@ class RetrofitClient(serverUrl: String) {
 
         private val safeOkHttpClient = OkHttpClient()
             .newBuilder()
-            .addInterceptor(LoggingInterceptor)
-            //.addInterceptor(RequestInterceptor)
+            //.addInterceptor(LoggingInterceptor)
+            .addInterceptor(RequestInterceptor)
             .build()
 
 
