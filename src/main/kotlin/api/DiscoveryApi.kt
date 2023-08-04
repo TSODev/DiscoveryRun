@@ -39,6 +39,15 @@ interface DiscoveryApi {
     @Headers(
         "Content-Type: application/json"
     )
+    @POST("discovery/runs/scheduled")
+    fun apiCreateScheduledRunJob(
+        @Body job: JobRunScheduled,
+
+        ): Call<Any>
+
+    @Headers(
+        "Content-Type: application/json"
+    )
     @GET
     fun apiGetFinalResults(@Url url: String): Call<JobFinalResults>
 

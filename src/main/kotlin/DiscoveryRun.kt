@@ -78,13 +78,50 @@ class DiscoveryRun: CliktCommand() {
 
     val params by option(
         "-a", "--params",
-        help = "Parametres additionels (string format JSON)"
+        help = "Parametres additionels (string format JSON) \n" +
+                " (outpost_id : String) \n" +
+                " (scope : String)\n" +
+                " (restricted_org_id : String)\n" +
+                " [Parametres du scan :]\n" +
+                "  \t (provider : String)\n" +
+                "  \t (credential : String)\n" +
+                "  \t (region : Array of String)\n" +
+                "  \t (cluster_url : String)\n" +
+                " [Options du scan :]\n" +
+                "  \t(NO_PING : Boolean)\n" +
+                "  \t(SESSION_LOGGING : Boolean)\n" +
+                "  \t(CLOUD_HOST_DETECTION : Boolean)\n" +
+                "  \t(SKIP_IMPLICIT_SCANS : Boolean)\n" +
+                "  \t(VMWARE_GUEST_IMPLICIT_SCAN : Boolean)\n" +
+                "  \t(MAX_START_SSM_SESSION : Int)\n" +
+                "  \t(MAX_ACTIVE_SSM_SESSION : Int)\n" +
+                "  \t(MAX_ACTIVE_TAP_SESSION : Int)\n"
     ).default("{\"detail1\":\"exemple\"}")
+
+    val schedule by option( "--schedule",
+        help = "Enregistre le Job pour une execution périodique (défaut FALSE)"
+    ).flag(default = false)
+
+    val plan by option(
+        "--plan",
+        help = "Parametres planification (string format JSON) \n" +
+                " (day_of_month : Array of Int) \n" +
+                " (day_of_week : Array of String)\n" +
+                " (duration : Int)\n" +
+                " (recurrence_type: String)\n" +
+                " (start_minute : Int)\n" +
+                " (start_times : Array of Int)\n" +
+                " (week_def : String)\n"
+    ).default("{\"recurrence_type\":\"DAILY\"}")
+
+    val enabled by option( "-e","--enabled",
+        help = "Autorise l'exécution du job planifié (défaut FALSE)"
+    ).flag(default = false)
 
     override fun run() {
 
         echo("===============================================================================")
-        echo(" Discovery Run Job Launcher - TSO pour Orange Business - 08/23 - version 1.0.0 ")
+        echo(" Discovery Run Job Launcher - TSO pour Orange Business - 08/23 - version 1.0.2 ")
         echo("===============================================================================")
 
 
@@ -94,6 +131,14 @@ class DiscoveryRun: CliktCommand() {
             jsonParams = gson.fromJson(params, JsonObject::class.java)
         } catch (e: JsonSyntaxException) {
             logger.error("Erreur JSON pour PARAMS : ${e.message}")
+            exitProcess(-4)
+        }
+
+        var jsonPlan: JsonObject
+        try {
+            jsonPlan = gson.fromJson(plan.trim(), JsonObject::class.java)
+        } catch (e: JsonSyntaxException) {
+            logger.error("Erreur JSON pour PLAN : ${e.message}")
             exitProcess(-4)
         }
 
@@ -131,12 +176,15 @@ class DiscoveryRun: CliktCommand() {
             username,
             password,
             server,
+            schedule,
             company,
             label,
             targets!!,
             scan_kind!!.kind,
             scan_level!!.level,
             jsonParams,
+            jsonPlan,
+            enabled,
             unsafe
         )
 
@@ -147,6 +195,7 @@ private fun apiCallByCoroutines(
     username: String,
     password: String,
     server: String,
+    schedule: Boolean,
     company: String,
     label: String,
     targets: List<String>,
@@ -154,6 +203,8 @@ private fun apiCallByCoroutines(
     level: String,
     //       scope: String,
     params: JsonObject,
+    plan: JsonObject,
+    enabled: Boolean,
     unsafe: Boolean
 ) = runBlocking {
     launch { // launch new coroutine in the scope of runBlocking
@@ -162,23 +213,49 @@ private fun apiCallByCoroutines(
             ServiceApi.apiGetToken(server, username, password, unsafe).let { token: String? ->
                 if (token != null) {
                     TokenHolder.saveToken(token)
-                    val runId =
-                        ServiceApi.apiCreateRunJob(server, company, label, targets, scan_kind, level, params, unsafe)
-                    logger.info("Run ID: $runId")
-                    val info = ServiceApi.apiWaitJobResults(server, runId!!, unsafe)
-                    println(
-                        TextColors.yellow(
-                            "Résultats :  \n" +
-                                    " >" +
-                                    " | Scanned : ${targets.size}" +
-                                    " | Success : ${info?.Success?.count}" +
-                                    " | Skipped : ${info?.Skipped?.count}" +
-                                    " | No Response : ${info?.NoResponse?.count}" +
-                                    " | No Access : ${info?.NoAccess?.count}" +
-                                    " | Error : ${info?.Error?.count}" +
-                                    " | Dropped : ${info?.Dropped?.count} | <"
+                    if (schedule) {
+                            ServiceApi.apiCreateScheduledRunJob(
+                                server,
+                                company,
+                                label,
+                                targets,
+                                scan_kind,
+                                level,
+                                params,
+                                plan,
+                                enabled,
+                                unsafe
+                            )
+                        logger.info("Enregistrement de la planification du Job")
+                    }
+                    else {
+                        val runId =
+                            ServiceApi.apiCreateRunJob(
+                                server,
+                                company,
+                                label,
+                                targets,
+                                scan_kind,
+                                level,
+                                params,
+                                unsafe
+                            )
+                        logger.info("Run ID: $runId")
+                        val info = ServiceApi.apiWaitJobResults(server, runId!!, unsafe)
+                        println(
+                            TextColors.yellow(
+                                "Résultats :  \n" +
+                                        " >" +
+                                        " | Scanned : ${targets.size}" +
+                                        " | Success : ${info?.Success?.count}" +
+                                        " | Skipped : ${info?.Skipped?.count}" +
+                                        " | No Response : ${info?.NoResponse?.count}" +
+                                        " | No Access : ${info?.NoAccess?.count}" +
+                                        " | Error : ${info?.Error?.count}" +
+                                        " | Dropped : ${info?.Dropped?.count} | <"
+                            )
                         )
-                    )
+                    }
                 }
             }
         }
@@ -189,4 +266,4 @@ private fun apiCallByCoroutines(
     }
 }
 
-fun main(args: Array<String>) = DiscoveryRun().versionOption("1.0.1").main(args)
+fun main(args: Array<String>) = DiscoveryRun().versionOption("1.0.2").main(args)

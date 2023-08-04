@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "fr.tsodev"
-version = "1.0.1"
+version = "1.0.2"
 
 repositories {
     google()
@@ -17,7 +17,6 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")
-    implementation("com.xenomachina:kotlin-argparser:2.0.7")
     implementation("com.github.ajalt.clikt:clikt:4.2.0")
     implementation("io.github.oshai:kotlin-logging-jvm:4.0.0")
     implementation("org.slf4j:slf4j-reload4j:2.0.7")
