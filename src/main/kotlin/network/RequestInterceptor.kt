@@ -1,12 +1,12 @@
 package network
 
-import io.github.oshai.kotlinlogging.KotlinLogging
 import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response
+import utils.logging.TLogger
 import java.io.IOException
 
-private val logger = KotlinLogging.logger {}
+private val logger = TLogger
 object RequestInterceptor : Interceptor {
 
 

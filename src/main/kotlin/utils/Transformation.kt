@@ -1,9 +1,9 @@
 package utils
 
 import com.google.gson.JsonObject
-import io.github.oshai.kotlinlogging.KotlinLogging
+import utils.logging.TLogger
 
-private val logger = KotlinLogging.logger {}
+private val logger = TLogger
 
 class Transformation {
 

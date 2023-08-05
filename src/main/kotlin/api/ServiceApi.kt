@@ -2,7 +2,6 @@ package api
 
 
 import com.google.gson.JsonObject
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.delay
 import models.*
 import network.RetrofitClient
@@ -12,8 +11,10 @@ import utils.Transformation.Companion.getValue
 import utils.Transformation.Companion.stringToArrayInt
 import utils.Transformation.Companion.stringToInt
 import utils.Transformation.Companion.stringToListString
+import utils.logging.TLogger
 
-private val logger = KotlinLogging.logger {}
+//private val logger = KotlinLogging.logger {}
+private val logger = TLogger
 
 interface ServiceApi {
 
@@ -165,7 +166,7 @@ interface ServiceApi {
 //                        logger.debug("$results")
                         finished = results.finished
                         delay(3000)
-                        logger.info(".")
+                        logger.info(".",false)
                     } else {
                         logger.debug("Pas de resultats succes au Job lancé !")
                         finished = true
@@ -174,9 +175,9 @@ interface ServiceApi {
                     throw HttpException(response)
                 }
             }
-            val inferred = apiDiscovery.apiGetInferred(results?.inferred!!).execute()
-            logger.debug("$inferred")
-            val finalResults = apiDiscovery.apiGetFinalResults(results.results).execute()
+//            val inferred = apiDiscovery.apiGetInferred(results?.inferred!!).execute()
+//            logger.debug("$inferred")
+            val finalResults = apiDiscovery.apiGetFinalResults(results?.results!!).execute()
             logger.debug("$finalResults")
             return finalResults.body()
         }

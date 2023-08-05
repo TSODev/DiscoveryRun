@@ -1,37 +1,46 @@
 
 import api.ServiceApi
 import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.UsageError
 import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.choice
 import com.github.ajalt.mordant.rendering.TextColors
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.JsonSyntaxException
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import network.TokenHolder
 import retrofit2.HttpException
+import utils.logging.Level
+import utils.logging.TLogger
 import kotlin.system.exitProcess
 
-private val logger = KotlinLogging.logger {}
 
-class DiscoveryRun: CliktCommand() {
+
+//private val logger = KotlinLogging.logger {}
+private val logger = TLogger
+
+fun main(args: Array<String>):Unit =   DiscoveryRun().versionOption("1.0.3").main(args)
+
+class DiscoveryRun: CliktCommand(help = "Execute ou enregistre un Job de scan dans BMC Discovery") {
+
     enum class scanLevel(val level: String) { FULL("Full Discovery"), SWEEP("Sweep Scan") }
     enum class scanKind(val kind: String) { IP("IP"), CLOUD("Cloud") }
 
     val validURL = "^(http(s):\\/\\/.)[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)(/)\$"
+ //   val validURL_IP = "^http (s?):\\/\\/ ( (2 [0-5] {2}|1 [0-9] {2}| [0-9] {1,2})\\.) {3} (2 [0-5] {2}|1 [0-9] {2}| [0-9] {1,2}) (:\\d+)?(/)\$"
 
     val server: String by option(
         "-s", "--server",
         help = "URL API du serveur Discovery , (https et termine avec '/') \n " +
-            "généralement https://server/api/v1.1/")
+                "généralement https://server/api/v1.1/")
         .required()
-//        .validate {
-//        if (!it.matches(Regex(validURL)))
-//            throw InvalidArgumentException("URL du serveur invalide : $it \n" +
-//                    "lancer le programme avec l'option -h pour de l'aide")
-//    }
+        .validate {
+        if (!it.matches(Regex(validURL)))
+            throw UsageError("URL du serveur invalide : $it \n" +
+                    "lancer le programme avec l'option -h pour de l'aide")
+    }
 
     val username: String by option(
         "-u", "--username",
@@ -60,14 +69,14 @@ class DiscoveryRun: CliktCommand() {
     val targets by option(
         "-t", "--targets",
         help = "Liste des cibles (IPv4 ou IPv6) à scanner, séparées par le caractère ','"
-    ).split(",").required()
+    ).required()
 
     val scan_level by option(
         "-v", "--level",
         help = "Niveau du scan").choice(
         "full" to scanLevel.FULL,
         "sweep" to scanLevel.SWEEP,
-        ).default(scanLevel.FULL)
+    ).default(scanLevel.FULL)
 
     val scan_kind by option(
         "-k", "--kind",
@@ -118,12 +127,28 @@ class DiscoveryRun: CliktCommand() {
         help = "Autorise l'exécution du job planifié (défaut FALSE)"
     ).flag(default = false)
 
+    val debugLevel by option(
+        "-d", "--debug",
+        help = "Niveau du debug").choice(
+        "off" to Level.OFF,
+        "trace" to Level.TRACE,
+            "debug" to Level.DEBUG,
+        "info" to Level.INFO,
+        "error" to Level.ERROR,
+        "fatal" to Level.FATAL,
+        "all" to Level.ALL
+    ).default(Level.OFF)
+
     override fun run() {
 
+
         echo("===============================================================================")
-        echo(" Discovery Run Job Launcher - TSO pour Orange Business - 08/23 - version 1.0.2 ")
+        echo(" Discovery Run Job Launcher - TSO pour Orange Business - 08/23 - version 1.0.3 ")
         echo("===============================================================================")
 
+        logger.setRunLevel(debugLevel)
+        logger.addDateTimeToPrefix()
+        logger.addDurationToPrefix()
 
         val gson = Gson()
         var jsonParams: JsonObject
@@ -179,9 +204,9 @@ class DiscoveryRun: CliktCommand() {
             schedule,
             company,
             label,
-            targets!!,
-            scan_kind!!.kind,
-            scan_level!!.level,
+            targets.trim().split(","),
+            scan_kind.kind,
+            scan_level.level,
             jsonParams,
             jsonPlan,
             enabled,
@@ -214,18 +239,18 @@ private fun apiCallByCoroutines(
                 if (token != null) {
                     TokenHolder.saveToken(token)
                     if (schedule) {
-                            ServiceApi.apiCreateScheduledRunJob(
-                                server,
-                                company,
-                                label,
-                                targets,
-                                scan_kind,
-                                level,
-                                params,
-                                plan,
-                                enabled,
-                                unsafe
-                            )
+                        ServiceApi.apiCreateScheduledRunJob(
+                            server,
+                            company,
+                            label,
+                            targets,
+                            scan_kind,
+                            level,
+                            params,
+                            plan,
+                            enabled,
+                            unsafe
+                        )
                         logger.info("Enregistrement de la planification du Job")
                     }
                     else {
@@ -244,7 +269,7 @@ private fun apiCallByCoroutines(
                         val info = ServiceApi.apiWaitJobResults(server, runId!!, unsafe)
                         println(
                             TextColors.yellow(
-                                "Résultats :  \n" +
+                                "\nRésultats :  \n" +
                                         " >" +
                                         " | Scanned : ${targets.size}" +
                                         " | Success : ${info?.Success?.count}" +
@@ -264,6 +289,6 @@ private fun apiCallByCoroutines(
             exitProcess(-1)
         }
     }
-}
 
-fun main(args: Array<String>) = DiscoveryRun().versionOption("1.0.2").main(args)
+
+}
