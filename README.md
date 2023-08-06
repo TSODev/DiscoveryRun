@@ -2,7 +2,11 @@
 
 exemple de ligne de commande: (nécessite un JVM)
 
-Il s'agit d'un programme en ligne de commande qui permet de créer et de lancer un job de scan
+--server=https://server/api/v1.9/ --username=Allen --password=Password_1234 --label=TSO_Run --targets=192.168.100.202,192.168.100.201 --level=full --kind=IP  --debug=info
+
+--server=https://server/api/v1.9/ --username=Allen --password=Password_1234 --label=TSO_Run_Plan --targets=192.168.100.202,192.168.100.201 --level=full --kind=IP  --schedule --plan={'days_of_month':'[1,8,15,22,29]','days_of_week':'MONDAY,FRIDAY','duration':'0','recurrence_type':'WEEKLY','start_minute':'0','start_times':'6,8,12,20','week_def':'FIRST'} --debug=OFF
+
+Il s'agit d'un programme en ligne de commande qui permet de créer, de lancer, ou de programmer un job de scan
 
 Usage: DiscoveryRun [\<options>]
 
