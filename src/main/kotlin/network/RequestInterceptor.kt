@@ -14,6 +14,7 @@ object RequestInterceptor : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
 
         val token = TokenHolder.token
+        logger.addToPrefix("[network]")
 
         var request: Request = chain.request()
         logger.debug("Outgoing request to ${request.url}")
@@ -33,6 +34,7 @@ object RequestInterceptor : Interceptor {
                 .build()
 
         }
+        logger.removeToPrefix("[network]")
         return chain.proceed(request)           //response
     }
 }

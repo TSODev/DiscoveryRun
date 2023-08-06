@@ -9,12 +9,14 @@ class Transformation {
 
     companion object {
         fun getValue(obj: JsonObject, key: String): String? {
+            logger.addToPrefix("[transform]")
             var result = ""
             val resultValue = obj.get(key)
             logger.debug("$obj , $key , $resultValue")
             if (resultValue != null) {
                 result = resultValue.toString().replace("\"", "")
             }
+            logger.removeToPrefix("[transform]")
             return result
         }
 

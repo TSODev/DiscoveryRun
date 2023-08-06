@@ -24,7 +24,6 @@ enum class Tag(val value:String) {
     TIME("%Time%"),
     DATETIME("%DateTime%"),
     DURATION("%Duration%")
-
 }
 object TLogger {
     private val t = Terminal()
@@ -37,6 +36,8 @@ object TLogger {
     fun setRunLevel(level: Level) {
         this.runLevel = level
     }
+
+    fun getPrefix(): List<String> = prefix
 
     fun addToPrefix(prefixSupplement: String) {
         prefix.add("$prefixSupplement ")
@@ -72,10 +73,15 @@ object TLogger {
         val time = LocalTime.now().format(DateTimeFormatter.ofPattern("hh:mm:ss.SSS"))
 
         prefix.forEach { p ->
-            if (p == Tag.DATETIME.value) toPrint.add("[$dt] ")
-            if (p == Tag.DATE.value) toPrint.add("[$date] ")
-            if (p == Tag.TIME.value) toPrint.add("[$time] ")
-            if (p == Tag.DURATION.value) toPrint.add("[${duration.toMillis()}ms] ")
+            when (p) {
+                Tag.DATETIME.value -> toPrint.add("[$dt] ")
+                Tag.DATE.value -> toPrint.add("[$date] ")
+                Tag.TIME.value -> toPrint.add("[$time] ")
+                Tag.DURATION.value -> toPrint.add("[${duration.toMillis()}ms] ")
+                else -> {
+                    toPrint.add(p)
+                }
+            }
         }
         val data = toPrint.joinToString(" ") + message
         if (runLevel <= level)

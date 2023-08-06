@@ -44,16 +44,17 @@ class DiscoveryRun: CliktCommand(help = "Execute ou enregistre un Job de scan da
 
     val username: String by option(
         "-u", "--username",
-        help = "Login - Nom de l'utilisateur"
+        help = "Nom de l'utilisateur"
     ).prompt()
 
     val password: String by option(
         "-p", "--password",
-        help = "Login - Mot de Passe de l'utilisateur"
+        help = "Mot de Passe de l'utilisateur"
     ).prompt(hideInput = true)
 
     val unsafe by option( "-x", "--unsecure",
-        help = "do not verify SSL certificate checking process (useful with self signed certificate)"
+        help = "pas de vérification du certificat SSL\n" +
+                "(permet l'utilisation de certificat auto signé)"
     ).flag(default = true)
 
     val company by option(
@@ -87,7 +88,7 @@ class DiscoveryRun: CliktCommand(help = "Execute ou enregistre un Job de scan da
 
     val params by option(
         "-a", "--params",
-        help = "Parametres additionels (string format JSON) \n" +
+        help = "Parametres additionnels (string format JSON) \n" +
                 " (outpost_id : String) \n" +
                 " (scope : String)\n" +
                 " (restricted_org_id : String)\n" +

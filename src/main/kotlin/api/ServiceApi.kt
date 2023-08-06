@@ -13,7 +13,6 @@ import utils.Transformation.Companion.stringToInt
 import utils.Transformation.Companion.stringToListString
 import utils.logging.TLogger
 
-//private val logger = KotlinLogging.logger {}
 private val logger = TLogger
 
 interface ServiceApi {
